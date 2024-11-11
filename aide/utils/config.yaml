@@ -37,13 +37,13 @@ agent:
   # whether to instruct the agent to use CV (set to 1 to disable)
   k_fold_validation: 1
   # whether to instruct the agent to generate a prediction function
-  expose_prediction: False
+  expose_prediction: True
   # whether to provide the agent with a preview of the data
   data_preview: True
 
   # LLM settings for coding
   code:
-    model: o1-mini
+    model: o1-preview
     temp: 0.5
 
   # LLM settings for evaluating program output / tracebacks
