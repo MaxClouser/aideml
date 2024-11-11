@@ -138,6 +138,7 @@ class Interpreter:
             try:
                 exec(compile(code, self.agent_file_name, "exec"), global_scope)
             except BaseException as e:
+                logger.info(f"Exception during code execution: {e}", exc_info=True)
                 tb_str, e_cls_name, exc_info, exc_stack = exception_summary(
                     e,
                     self.working_dir,
@@ -278,6 +279,11 @@ class Interpreter:
         output.pop()  # remove the EOF marker
 
         e_cls_name, exc_info, exc_stack = state[1:]
+
+        # MAX logging error from code exec.
+        if e_cls_name:
+            logger.info(
+                f"Execution error: {e_cls_name} + {exc_info} + {exc_stack}")
 
         if e_cls_name == "TimeoutError":
             output.append(
