@@ -43,7 +43,7 @@ agent:
 
   # LLM settings for coding
   code:
-    model: o1-preview
+    model: o1-mini
     temp: 0.5
 
   # LLM settings for evaluating program output / tracebacks
@@ -53,6 +53,6 @@ agent:
 
   # hyperparameters for the tree search
   search:
-    max_debug_depth: 3
+    max_debug_depth: 8
     debug_prob: 0.5
     num_drafts: 5
