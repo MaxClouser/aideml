@@ -105,6 +105,7 @@ class Agent:
             "torch-geometric",
             "bayesian-optimization",
             "timm",
+            "ultralytics",
         ]
         random.shuffle(pkgs)
         pkg_str = ", ".join([f"`{p}`" for p in pkgs])
