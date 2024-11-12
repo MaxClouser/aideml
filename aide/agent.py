@@ -1,3 +1,4 @@
+import shutil
 import logging
 import random
 from typing import Any, Callable, cast
@@ -106,6 +107,7 @@ class Agent:
             "bayesian-optimization",
             "timm",
             "ultralytics",
+            "transformers",
         ]
         random.shuffle(pkgs)
         pkg_str = ", ".join([f"`{p}`" for p in pkgs])
@@ -125,6 +127,7 @@ class Agent:
             f"Be aware of the running time of the code, it should complete within {humanize.naturaldelta(self.cfg.exec.timeout)}.",
             'All the provided input data is stored in "./input" directory.',
             '**If there is test data provided for this task, please save the test predictions in a `submission.csv` file in the "./working" directory as described in the task description** This is extremely important since this file is used for grading/evaluation. DO NOT FORGET THE submission.csv file!',
+            '**Save the model weights of the trained model as `model.safetensors` in the "./working" directory**',
             'You can also use the "./working" directory to store any temporary files that your code needs to create.',
         ]
         if self.acfg.expose_prediction:
@@ -293,6 +296,37 @@ class Agent:
             exec_result=exec_callback(result_node.code, True),
         )
         self.journal.append(result_node)
+
+        # if the result_node is the best node, save submission, solution, best model
+        best_node = self.journal.get_best_node()
+        if best_node is not None and best_node.id == result_node.id:
+            best_solution_dir = self.cfg.workspace_dir / "best_solution"
+
+            # Remove the best_solution directory if it exists
+            if best_solution_dir.exists():
+                shutil.rmtree(best_solution_dir)
+                print(f"Deleted existing best_solution directory: {best_solution_dir}")
+
+            best_solution_dir.mkdir(exist_ok=True, parents=True)
+            try:
+                submission_path = self.cfg.workspace_dir / "working" / "submission.csv"
+                if submission_path.exists():
+                    shutil.copy(submission_path, best_solution_dir)
+
+                # Copy model.safetensors if it exists
+                model_path = self.cfg.workspace_dir / "working" / "model.safetensors"
+                if model_path.exists():
+                    shutil.copy(model_path, best_solution_dir)
+                    
+                with open(best_solution_dir / "node_id.txt", "w") as f:
+                    f.write(str(result_node.id))
+                with open(best_solution_dir / "metric.txt", "w") as f:
+                    f.write(str(result_node.metric))
+                with open(best_solution_dir / "solution.py", "w") as f:
+                    f.write(result_node.code)
+            except FileNotFoundError as e:
+                logger.warning(f"File not found: {e.filename}")
+
 
     def parse_exec_result(self, node: Node, exec_result: ExecutionResult):
         logger.info(f"Agent is parsing execution results for node {node.id}")
